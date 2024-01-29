@@ -5,7 +5,7 @@ const cors = require("cors");
 
 const app = express();
 const server = http.createServer(app);
-
+app.use(cors);
 const io = socketIo(server, {
   cors: {
     origin: "*",
@@ -49,7 +49,7 @@ io.on("connection", (socket) => {
   socket.on("send-friend-request", (data) => {
     const target = data.target;
     const requestingUser = connectedUsers[socket.peerId];
-    console.log("friend request is sent " + data);
+    console.log("friend request is sent ", data.target);
     if (!target) {
       console.error("Target is undefined in send-friend-request");
       return;
