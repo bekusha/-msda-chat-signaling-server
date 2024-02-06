@@ -124,19 +124,38 @@ io.on("connection", (socket) => {
       acceptingUser
     );
   });
-
   socket.on("disconnect", () => {
-    delete connectedUsers[socket.peerId];
-    io.emit(
-      "users-list",
-      Object.values(connectedUsers).map((user) => ({
-        peerId: user.peerId,
-        name: user.name,
-        lastName: user.lastName,
-        username: user.username,
-      }))
-    );
+    // Perform cleanup for the disconnected user
+    if (socket.peerId && connectedUsers[socket.peerId]) {
+      delete connectedUsers[socket.peerId];
+      delete uuidToSocketId[socket.peerId];
+
+      // Emit an updated users-list to all connected clients
+      io.emit(
+        "users-list",
+        Object.values(connectedUsers).map((user) => ({
+          peerId: user.peerId,
+          name: user.name,
+          lastName: user.lastName,
+          username: user.username,
+        }))
+      );
+
+      console.log(`User ${socket.peerId} disconnected`);
+    }
   });
+  // socket.on("disconnect", () => {
+  //   delete connectedUsers[socket.peerId];
+  //   io.emit(
+  //     "users-list",
+  //     Object.values(connectedUsers).map((user) => ({
+  //       peerId: user.peerId,
+  //       name: user.name,
+  //       lastName: user.lastName,
+  //       username: user.username,
+  //     }))
+  //   );
+  // });
 });
 
 const port = process.env.PORT || 3000;
