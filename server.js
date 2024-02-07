@@ -2,10 +2,21 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const cors = require("cors");
-
+const { createProxyMiddleware } = require("http-proxy-middleware");
+const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
 const app = express();
 const server = http.createServer(app);
-app.use(cors);
+const apiProxy = createProxyMiddleware("/api", {
+  // actual backend
+  target: backendUrl,
+  changeOrigin: true,
+  ws: true, // Set to false because you handle WebSocket separately with socket.io
+  pathRewrite: {
+    "^/api": "", // Optionally rewrite path
+  },
+});
+app.use(cors());
+app.use("/api", apiProxy);
 const io = socketIo(server, {
   cors: {
     origin: "*",

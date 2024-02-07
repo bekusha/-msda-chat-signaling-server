@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "http-proxy-middleware": "^2.0.6",
     "peer": "^1.0.2",
     "socket.io": "^4.7.4"
   }
