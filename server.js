@@ -10,9 +10,9 @@ const apiProxy = createProxyMiddleware("/api", {
   // actual backend
   target: backendUrl,
   changeOrigin: true,
-  ws: true, // Set to false because you handle WebSocket separately with socket.io
+  ws: true,
   pathRewrite: {
-    "^/api": "", // Optionally rewrite path
+    "^/api": "",
   },
 });
 app.use(cors());
@@ -47,16 +47,6 @@ io.on("connection", (socket) => {
     );
   });
 
-  // socket.on("signaling-message", (data) => {
-  //   const targetSocketId = uuidToSocketId[data.targetUuid];
-  //   if (targetSocketId) {
-  //     io.to(targetSocketId).emit("signaling-message", {
-  //       fromUuid: socket.peerId,
-  //       ...data,
-  //     });
-  //   }
-  // });
-
   socket.on("send-friend-request", (data) => {
     const target = data.target;
     const requestingUser = connectedUsers[socket.peerId];
@@ -87,7 +77,7 @@ io.on("connection", (socket) => {
 
   socket.on("accept-friend-request", (data) => {
     const target = data.target;
-    const acceptingUser = connectedUsers[socket.peerId]; // Assuming socket.peerId is the receiver's UUID
+    const acceptingUser = connectedUsers[socket.peerId];
 
     if (!target) {
       console.error("Target is undefined in accept-friend-request");
@@ -107,9 +97,7 @@ io.on("connection", (socket) => {
 
       const senderUser = connectedUsers[senderUuid];
       const receiverUser = connectedUsers[receiverUuid];
-      // ... (possibly some validation of senderUser and receiverUser)
 
-      // Emit an event to both the sender and the receiver to update their friends list
       io.to(uuidToSocketId[senderUuid]).emit(
         "update-friends-list",
         receiverUser
@@ -136,12 +124,9 @@ io.on("connection", (socket) => {
     );
   });
   socket.on("disconnect", () => {
-    // Perform cleanup for the disconnected user
     if (socket.peerId && connectedUsers[socket.peerId]) {
       delete connectedUsers[socket.peerId];
       delete uuidToSocketId[socket.peerId];
-
-      // Emit an updated users-list to all connected clients
       io.emit(
         "users-list",
         Object.values(connectedUsers).map((user) => ({
@@ -155,18 +140,6 @@ io.on("connection", (socket) => {
       console.log(`User ${socket.peerId} disconnected`);
     }
   });
-  // socket.on("disconnect", () => {
-  //   delete connectedUsers[socket.peerId];
-  //   io.emit(
-  //     "users-list",
-  //     Object.values(connectedUsers).map((user) => ({
-  //       peerId: user.peerId,
-  //       name: user.name,
-  //       lastName: user.lastName,
-  //       username: user.username,
-  //     }))
-  //   );
-  // });
 });
 
 const port = process.env.PORT || 3000;
