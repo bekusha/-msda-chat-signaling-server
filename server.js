@@ -123,6 +123,28 @@ io.on("connection", (socket) => {
       acceptingUser
     );
   });
+
+  socket.on("initiateCall", (data) => {
+    const targetPeerId = data.targetPeerId; // The peer ID of the user to call
+    const callerUserData = connectedUsers[socket.peerId]; // Assuming the caller's user data is stored and keyed by their peer ID
+
+    if (!targetPeerId || !callerUserData) {
+      console.error("Invalid targetPeerId or caller user data not found.");
+      return;
+    }
+
+    const targetSocketId = uuidToSocketId[targetPeerId];
+    if (targetSocketId) {
+      // Send a call initiation event to the target user including the caller's user data
+      io.to(targetSocketId).emit("callInitiated", {
+        fromPeerId: socket.peerId, // Include the caller's peer ID
+        userData: callerUserData, // Include the caller's user data
+      });
+    } else {
+      console.error("Target socket not found for peer ID:", targetPeerId);
+    }
+  });
+
   socket.on("disconnect", () => {
     if (socket.peerId && connectedUsers[socket.peerId]) {
       delete connectedUsers[socket.peerId];
